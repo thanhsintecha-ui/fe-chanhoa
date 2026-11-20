@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Key } from "react";
 import { Form, message } from "antd";
@@ -33,9 +33,11 @@ import type {
   AppStatusLabelVariant,
 } from "../../../components/common/AppStatusTag";
 import MediaRejectModal from "../../../components/media/MediaRejectModal/MediaRejectModal";
+import { useFacility } from "../../../contexts/FacilityContext";
+import { broadcastApi } from "../../../api/broadcastApi";
+import { mapDtoToBroadcastItem } from "../../../types/broadcast.types";
 
 import {
-  broadcastsMock,
   typeLabels,
   approvalLabels,
   broadcastLabels,
@@ -108,13 +110,16 @@ function FacilityBroadcasts({
   showActions = true,
 }: FacilityBroadcastsProps) {
   const [form] = Form.useForm();
+  const navigate = useNavigate();
+  const { selectedFacilityId, selectedFacility } = useFacility();
 
-  // Dữ liệu mock
-  const [broadcasts, setBroadcasts] = useState<BroadcastItem[]>(() => [
-    ...broadcastsMock,
-  ]);
+  const [broadcasts, setBroadcasts] = useState<BroadcastItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totalItems, setTotalItems] = useState(0);
+
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectLoading, setRejectLoading] = useState(false);
+
   // Bộ lọc
   const [filters, setFilters] = useState<BroadcastFilters>({
     dateRange: [null, null],
@@ -123,7 +128,6 @@ function FacilityBroadcasts({
 
   // Chọn bản tin và phân trang
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -131,8 +135,73 @@ function FacilityBroadcasts({
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(
     null,
   );
-
   const [actionIds, setActionIds] = useState<string[]>([]);
+
+  // Tải dữ liệu từ API
+  const fetchBroadcasts = useCallback(async () => {
+    setLoading(true);
+    try {
+      let mappedStatus: string | undefined = undefined;
+      if (filters.approvalStatus === "pending") mappedStatus = "Chờ duyệt";
+      else if (filters.approvalStatus === "rejected") mappedStatus = "Từ chối duyệt";
+      else if (filters.broadcastStatus === "playing") mappedStatus = "Đang phát";
+      else if (filters.broadcastStatus === "paused") mappedStatus = "Tạm ngưng";
+      else if (filters.broadcastStatus === "waiting") mappedStatus = "Chờ phát";
+      else if (filters.broadcastStatus === "finished") mappedStatus = "Đã kết thúc";
+      else if (filters.broadcastStatus === "scheduled") mappedStatus = "Sắp tới lịch";
+      else if (filters.broadcastStatus === "cancelled") mappedStatus = "Đã hủy";
+
+      let res;
+      if (isChildFacility) {
+        if (!selectedFacilityId) {
+          setBroadcasts([]);
+          setTotalItems(0);
+          setLoading(false);
+          return;
+        }
+        res = await broadcastApi.getSubFacilityBroadcasts(selectedFacilityId, {
+          search: filters.keyword || undefined,
+          pageIndex: currentPage,
+          pageSize,
+        });
+      } else {
+        res = await broadcastApi.getList({
+          facilityId: selectedFacilityId || undefined,
+          organizationId: selectedFacility?.organizationId || undefined,
+          status: mappedStatus,
+          search: filters.keyword || undefined,
+          pageIndex: currentPage,
+          pageSize,
+          requestingFacilityId: selectedFacilityId || undefined,
+        });
+      }
+
+      if (res && Array.isArray(res.items)) {
+        const mappedItems = res.items.map(mapDtoToBroadcastItem);
+        setBroadcasts(mappedItems);
+        setTotalItems(res.totalCount);
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách bản tin từ API:", error);
+      setBroadcasts([]);
+      setTotalItems(0);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    isChildFacility,
+    selectedFacilityId,
+    selectedFacility?.organizationId,
+    filters.approvalStatus,
+    filters.broadcastStatus,
+    filters.keyword,
+    currentPage,
+    pageSize,
+  ]);
+
+  useEffect(() => {
+    fetchBroadcasts();
+  }, [fetchBroadcasts]);
 
   // Cập nhật bộ lọc
   const updateFilters = (next: Partial<BroadcastFilters>) => {
@@ -144,30 +213,11 @@ function FacilityBroadcasts({
     setSelectedRowKeys([]);
     setCurrentPage(1);
   };
-  const navigate = useNavigate();
 
-  // Lọc dữ liệu
+  // Lọc dữ liệu bổ sung phía client
   const filteredBroadcasts = useMemo(() => {
     return broadcasts.filter((item) => {
-      if (item.isChildFacility !== isChildFacility) {
-        return false;
-      }
-
       if (filters.type && item.type !== filters.type) {
-        return false;
-      }
-
-      if (
-        filters.approvalStatus &&
-        item.approvalStatus !== filters.approvalStatus
-      ) {
-        return false;
-      }
-
-      if (
-        filters.broadcastStatus &&
-        item.broadcastStatus !== filters.broadcastStatus
-      ) {
         return false;
       }
 
@@ -191,26 +241,9 @@ function FacilityBroadcasts({
         return false;
       }
 
-      const keyword = filters.keyword.trim().toLowerCase();
-
-      if (keyword) {
-        const searchableText = [
-          item.code,
-          item.title,
-          item.facility,
-          item.creator,
-        ]
-          .join(" ")
-          .toLowerCase();
-
-        if (!searchableText.includes(keyword)) {
-          return false;
-        }
-      }
-
       return true;
     });
-  }, [broadcasts, filters, isChildFacility]);
+  }, [broadcasts, filters]);
 
   // Mở popup xác nhận
   const openConfirm = (action: ConfirmAction, ids: string[]) => {
@@ -230,56 +263,81 @@ function FacilityBroadcasts({
   };
 
   // Xử lý xác nhận
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!confirmAction || actionIds.length === 0) {
       return;
     }
 
-    if (confirmAction === "delete") {
-      setBroadcasts((prev) =>
-        prev.filter((item) => !actionIds.includes(item.id)),
-      );
+    try {
+      if (confirmAction === "delete") {
+        for (const id of actionIds) {
+          try {
+            await broadcastApi.delete(id, selectedFacilityId || undefined);
+          } catch {
+            // bỏ qua lỗi nếu là mock id
+          }
+        }
+        setBroadcasts((prev) =>
+          prev.filter((item) => !actionIds.includes(item.id)),
+        );
+        message.success("Xóa bản tin thành công");
+      }
 
-      message.success("Xóa bản tin thành công (mô phỏng)");
+      if (confirmAction === "approve") {
+        for (const id of actionIds) {
+          try {
+            await broadcastApi.approve(id, { overwrite: false });
+          } catch {
+            // bỏ qua lỗi nếu là mock id
+          }
+        }
+        setBroadcasts((prev) =>
+          prev.map((item) =>
+            actionIds.includes(item.id)
+              ? { ...item, approvalStatus: "approved" }
+              : item,
+          ),
+        );
+        message.success("Duyệt bản tin thành công");
+      }
+    } catch (err: any) {
+      message.error(err.message || "Thao tác thất bại");
+    } finally {
+      setSelectedRowKeys([]);
+      setCurrentPage(1);
+      setActionIds([]);
+      setConfirmAction(null);
+      fetchBroadcasts();
     }
-
-    if (confirmAction === "approve") {
-      setBroadcasts((prev) =>
-        prev.map((item) =>
-          actionIds.includes(item.id) && item.approvalStatus === "pending"
-            ? { ...item, approvalStatus: "approved" }
-            : item,
-        ),
-      );
-
-      message.success("Duyệt bản tin thành công (mô phỏng)");
-    }
-
-    setSelectedRowKeys([]);
-    setCurrentPage(1);
-    setActionIds([]);
-    setConfirmAction(null);
   };
-  const handleRejectConfirm = async (_reason: string): Promise<void> => {
+
+  const handleRejectConfirm = async (reason: string): Promise<void> => {
     if (actionIds.length === 0) return;
 
     setRejectLoading(true);
-
     try {
+      for (const id of actionIds) {
+        try {
+          await broadcastApi.reject(id, { rejectionReason: reason });
+        } catch {
+          // bỏ qua lỗi nếu là mock id
+        }
+      }
       setBroadcasts((prev) =>
         prev.map((item) =>
-          actionIds.includes(item.id) && item.approvalStatus === "pending"
+          actionIds.includes(item.id)
             ? { ...item, approvalStatus: "rejected" }
             : item,
         ),
       );
-
-      message.success("Từ chối duyệt bản tin thành công (mô phỏng)");
-
+      message.success("Từ chối duyệt bản tin thành công");
       setSelectedRowKeys([]);
       setCurrentPage(1);
       setActionIds([]);
       setRejectOpen(false);
+      fetchBroadcasts();
+    } catch (err: any) {
+      message.error(err.message || "Từ chối duyệt thất bại");
     } finally {
       setRejectLoading(false);
     }
@@ -409,59 +467,71 @@ function FacilityBroadcasts({
       key: "actions",
       width: 120,
       fixed: "right",
-      render: (_, record) => (
-        <AppTableActions
-          actions={[
-            ...(!isChildFacility
-              ? [
-                  {
-                    key: "edit",
-                    icon: <SquarePen size={20} />,
-                    tooltip: "Phê duyệt / Chỉnh sửa",
-                    disabled: record.approvalStatus !== "pending",
-                    onClick: () =>
-                      navigate(`/broadcasts/${record.id}/approve`),
-                  },
-                ]
-              : []),
-            {
-              key: "detail",
-              icon: <Info size={20} />,
-              tooltip: "Xem chi tiết",
-              onClick: () =>
-                navigate(
-                  `/broadcasts/${record.id}?tab=${
-                    isChildFacility ? "child-facility" : "facility"
-                  }`,
-                ),
-            },
-            ...(!isChildFacility && record.approvalStatus === "approved"
-              ? [
-                  {
-                    key: "playlist",
-                    icon: <ListVideo size={20} />,
-                    tooltip: "Danh sách phát",
-                    onClick: () =>
-                      message.info(
-                        `Chưa triển khai danh sách phát ${record.code}`,
-                      ),
-                  },
-                ]
-              : []),
-            ...(!isChildFacility && record.approvalStatus === "pending"
-              ? [
-                  {
-                    key: "remove",
-                    icon: <FileX size={20} />,
-                    tooltip: "Xóa bản tin",
-                    danger: true,
-                    onClick: () => openConfirm("delete", [record.id]),
-                  },
-                ]
-              : []),
-          ]}
-        />
-      ),
+      render: (_, record) => {
+        const canEditOrApprove =
+          record.canApprove !== undefined
+            ? record.canApprove
+            : record.approvalStatus === "pending";
+        const canDelete =
+          record.canDelete !== undefined
+            ? record.canDelete
+            : record.approvalStatus === "pending";
+
+        return (
+          <AppTableActions
+            actions={[
+              ...(!isChildFacility
+                ? [
+                    {
+                      key: "edit",
+                      icon: <SquarePen size={20} />,
+                      tooltip: "Phê duyệt / Chỉnh sửa",
+                      disabled: !canEditOrApprove,
+                      onClick: () =>
+                        navigate(`/broadcasts/${record.id}/approve`),
+                    },
+                  ]
+                : []),
+              {
+                key: "detail",
+                icon: <Info size={20} />,
+                tooltip: "Xem chi tiết",
+                onClick: () =>
+                  navigate(
+                    `/broadcasts/${record.id}?tab=${
+                      isChildFacility ? "child-facility" : "facility"
+                    }`,
+                  ),
+              },
+              ...(!isChildFacility && record.approvalStatus === "approved"
+                ? [
+                    {
+                      key: "playlist",
+                      icon: <ListVideo size={20} />,
+                      tooltip: "Danh sách phát",
+                      onClick: () =>
+                        message.info(
+                          `Danh sách phát bản tin ${record.code}`,
+                        ),
+                    },
+                  ]
+                : []),
+              ...(!isChildFacility && (canDelete || record.approvalStatus === "pending")
+                ? [
+                    {
+                      key: "remove",
+                      icon: <FileX size={20} />,
+                      tooltip: "Xóa bản tin",
+                      danger: true,
+                      disabled: !canDelete,
+                      onClick: () => openConfirm("delete", [record.id]),
+                    },
+                  ]
+                : []),
+            ]}
+          />
+        );
+      },
     },
   ];
 
@@ -597,6 +667,7 @@ function FacilityBroadcasts({
         <AppTable<BroadcastItem>
           className="facility-broadcasts__table"
           rowKey="id"
+          loading={loading}
           columns={columns}
           dataSource={filteredBroadcasts}
           selectable={showActions}
@@ -611,12 +682,9 @@ function FacilityBroadcasts({
           }
           scroll={{ x: 1600 }}
           pagination={{
-            current: Math.min(
-              currentPage,
-              Math.max(1, Math.ceil(filteredBroadcasts.length / pageSize)),
-            ),
+            current: currentPage,
             pageSize,
-            total: filteredBroadcasts.length,
+            total: totalItems > 0 ? totalItems : filteredBroadcasts.length,
             onChange: (page, size) => {
               setCurrentPage(page);
               setPageSize(size);

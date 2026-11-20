@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Button, Empty, message } from "antd";
+import { Button, Empty, message, Spin } from "antd";
 import type { TableColumnsType } from "antd";
-import { Info, Play, Plus, CopyPlus, FileText } from "lucide-react";
+import { Info, Play, Plus, CopyPlus } from "lucide-react";
 
 import AppTabs from "../../../components/common/AppTabs";
 import AppStatusTag from "../../../components/common/AppStatusTag";
@@ -11,9 +11,11 @@ import AppTable from "../../../components/common/AppTable";
 import AppTableActions from "../../../components/common/AppTableActions";
 
 import { useActionPanel } from "../../../contexts/ActionPanelContext";
+import { useFacility } from "../../../contexts/FacilityContext";
+import { broadcastApi } from "../../../api/broadcastApi";
+import { mapDetailDtoToBroadcastItem } from "../../../types/broadcast.types";
 
 import {
-  broadcastsMock,
   typeLabels,
   approvalLabels,
   broadcastLabels,
@@ -69,6 +71,7 @@ function BroadcastDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { selectedFacilityId } = useFacility();
 
   const isChildFacility = searchParams.get("tab") === "child-facility";
 
@@ -78,11 +81,33 @@ function BroadcastDetailPage() {
   const { setActions } = useActionPanel();
 
   const [activeTab, setActiveTab] = useState<DetailTab>("information");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const broadcast = useMemo<BroadcastItem | undefined>(
-    () => broadcastsMock.find((item) => item.id === id),
-    [id],
-  );
+  const [broadcast, setBroadcast] = useState<BroadcastItem | undefined>(undefined);
+
+  useEffect(() => {
+    if (!id) return;
+    let isMounted = true;
+    setLoading(true);
+
+    broadcastApi
+      .getById(id, selectedFacilityId || undefined)
+      .then((detail) => {
+        if (isMounted && detail) {
+          setBroadcast(mapDetailDtoToBroadcastItem(detail));
+        }
+      })
+      .catch((err) => {
+        console.error("Lỗi khi tải chi tiết bản tin từ API:", err);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, selectedFacilityId]);
 
   // ActionPanel dùng chung từ MainLayout
   useEffect(() => {
@@ -110,6 +135,14 @@ function BroadcastDetailPage() {
       setActions([]);
     };
   }, [broadcast, activeTab, navigate, setActions]);
+
+  if (loading && !broadcast) {
+    return (
+      <div className="broadcast-detail__empty-page" style={{ padding: "60px 0" }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   if (!broadcast) {
     return (

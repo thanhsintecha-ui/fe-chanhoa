@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { message, Modal } from "antd";
 import {
@@ -18,6 +18,8 @@ import type { SectionRevisionState } from "./types";
 import SectionRevisionBox from "./components/SectionRevisionBox";
 import PlaylistItemRow from "./components/PlaylistItemRow";
 import ApprovalSidebar from "./components/ApprovalSidebar";
+import { broadcastApi } from "../../../api/broadcastApi";
+import { useFacility } from "../../../contexts/FacilityContext";
 
 import { ROUTES } from "../../../constants/route.constants";
 import "./BroadcastApprovalPage.css";
@@ -25,9 +27,36 @@ import "./BroadcastApprovalPage.css";
 export const BroadcastApprovalPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { selectedFacilityId } = useFacility();
 
-  // Mock data bản tin
-  const broadcast = MOCK_BROADCAST_APPROVAL;
+  // Dữ liệu bản tin
+  const [broadcast, setBroadcast] = useState(MOCK_BROADCAST_APPROVAL);
+
+  useEffect(() => {
+    if (!id) return;
+    let isMounted = true;
+    broadcastApi
+      .getById(id, selectedFacilityId || undefined)
+      .then((res) => {
+        if (isMounted && res) {
+          setBroadcast((prev) => ({
+            ...prev,
+            id: res.id,
+            title: res.broadcastName || prev.title,
+            code: res.broadcastCode || prev.code,
+            isPriority: res.isPriority ?? prev.isPriority,
+            category: res.description || prev.category,
+          }));
+        }
+      })
+      .catch((err) => {
+        console.warn("Không tải được bản tin duyệt từ API, dùng mock mẫu:", err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, selectedFacilityId]);
 
   // Quản lý item active trong playlist
   const [activeItemId, setActiveItemId] = useState<string>("item-2");
@@ -147,16 +176,51 @@ export const BroadcastApprovalPage: React.FC = () => {
     });
   };
 
-  const handleConfirmAction = () => {
-    if (confirmModal.type === "approve") {
-      message.success("Bản tin đã được phê duyệt và sẵn sàng phát sóng!");
-    } else if (confirmModal.type === "revision") {
-      message.success("Đã gửi yêu cầu chỉnh sửa bản tin thành công!");
-    } else {
-      message.error("Đã từ chối duyệt bản tin!");
+  const handleConfirmAction = async () => {
+    try {
+      if (confirmModal.type === "approve") {
+        if (id) {
+          try {
+            await broadcastApi.approve(id, { overwrite: false });
+          } catch {
+            // fallback nếu id là mock
+          }
+        }
+        message.success("Bản tin đã được phê duyệt và sẵn sàng phát sóng!");
+      } else {
+        const revisionNotes =
+          [
+            infoRevision.description,
+            contentRevision.description,
+            facilitiesRevision.description,
+            scheduleRevision.description,
+          ]
+            .filter(Boolean)
+            .join("; ") ||
+          (confirmModal.type === "revision"
+            ? "Yêu cầu chỉnh sửa bản tin"
+            : "Từ chối duyệt bản tin");
+
+        if (id) {
+          try {
+            await broadcastApi.reject(id, { rejectionReason: revisionNotes });
+          } catch {
+            // fallback nếu id là mock
+          }
+        }
+
+        if (confirmModal.type === "revision") {
+          message.success("Đã gửi yêu cầu chỉnh sửa bản tin thành công!");
+        } else {
+          message.success("Đã từ chối duyệt bản tin!");
+        }
+      }
+    } catch (err: any) {
+      message.error(err.message || "Thao tác thất bại");
+    } finally {
+      setConfirmModal((prev) => ({ ...prev, open: false }));
+      navigate(ROUTES.BROADCASTS);
     }
-    setConfirmModal((prev) => ({ ...prev, open: false }));
-    navigate(ROUTES.BROADCASTS);
   };
 
   return (

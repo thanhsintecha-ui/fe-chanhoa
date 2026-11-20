@@ -175,3 +175,5 @@ export function useFacilityContext() {
 
   return context;
 }
+
+export const useFacility = useFacilityContext;
