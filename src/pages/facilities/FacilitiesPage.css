@@ -1,0 +1,155 @@
+.facilities-page {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 278px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 24px;
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+}
+
+.facilities-main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  gap: 16px;
+}
+
+.facilities-content {
+  box-sizing: border-box;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(243, 198, 179, 0.2);
+}
+
+.facilities-empty,
+.facilities-placeholder {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  padding: 24px;
+
+  background: #ffffff;
+  border-radius: 12px;
+  color: #666666;
+  font-size: 16px;
+}
+
+.facilities-placeholder h2 {
+  margin: 0 0 16px;
+  color: var(--color-primary);
+  font-size: 23px;
+  font-weight: 700;
+}
+
+.facilities-placeholder p {
+  margin: 0;
+}
+
+/* Container cây cơ sở */
+
+.facilities-tree-wrapper {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* Loading, Error và Empty State */
+
+.facilities-tree-state {
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-height: 280px;
+  height: 100%;
+
+  padding: 20px;
+  gap: 16px;
+
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(243, 198, 179, 0.2);
+
+  color: #666666;
+  font-size: 14px;
+  text-align: center;
+}
+
+.facilities-tree-state .ant-alert {
+  width: 100%;
+  text-align: left;
+}
+
+.facilities-tree-state .ant-btn-primary {
+  min-width: 120px;
+}
+/* Bố cục riêng cho tab Media */
+.facilities-content:has(.facility-media-layout) {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.facilities-content:has(.facility-media-layout) .facility-media-layout {
+  flex: 1;
+  min-height: 0;
+}
+/* Responsive */
+
+@media (max-width: 700px) {
+  .facilities-tree-wrapper {
+    height: 350px;
+    max-height: 350px;
+  }
+
+  .facilities-tree-state {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .facilities-page {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 700px) {
+  .facilities-page {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 0;
+  }
+
+  .facilities-main {
+    height: auto;
+    min-height: 0;
+  }
+
+  .facilities-content {
+    min-height: 450px;
+  }
+}

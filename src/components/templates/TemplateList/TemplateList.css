@@ -1,0 +1,181 @@
+.template-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Khung nội dung */
+.template-list__panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  padding: 10px 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+/* Tiêu đề */
+.template-list__title {
+  flex-shrink: 0;
+  margin: 0 0 16px;
+
+  color: var(--color-primary);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+/* Bộ lọc */
+.template-list__filters {
+  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 12px;
+}
+
+.template-list__filters .app-filter__fields {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+}
+
+.template-list__filters .app-filter__field {
+  min-width: 0;
+}
+
+.template-list__filters .ant-form-item {
+  margin-bottom: 0;
+}
+
+.template-list__filters .ant-form-item-label > label {
+  color: #555555;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Tìm kiếm */
+.template-list__search {
+  margin-left: auto;
+}
+
+.template-list__search .ant-input-affix-wrapper {
+  height: 44px;
+  border: 1px solid #c2c2c2;
+  border-radius: 6px;
+}
+
+.template-list__search .ant-input-affix-wrapper:hover,
+.template-list__search .ant-input-affix-wrapper-focused {
+  border-color: var(--color-primary);
+  box-shadow: none;
+}
+
+.template-list__search .ant-input-suffix {
+  color: var(--color-primary);
+}
+
+/* Bảng danh sách */
+.template-list__table {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Ant Design Table */
+.template-list__table .ant-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Giữ bảng ở phía trên */
+.template-list__table .ant-table {
+  flex-shrink: 0;
+}
+
+/* Header bảng */
+.template-list__table .ant-table-thead > tr > th {
+  background: #ffe2d4 !important;
+  color: #e85e15 !important;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Nội dung bảng */
+.template-list__table .ant-table-tbody > tr > td {
+  color: #777777;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+/* Đẩy phân trang xuống cuối */
+.template-list__table .ant-table-pagination,
+.template-list__table .ant-pagination {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.template-list__status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 3px 10px;
+  border: 1px solid;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.template-list__status--used {
+  color: #52c41a;
+  background: #f6ffed;
+  border-color: #52c41a;
+}
+
+.template-list__status--unused {
+  color: #1677ff;
+  background: #e6f4ff;
+  border-color: #91caff;
+}
+/* Responsive */
+@media (max-width: 1200px) {
+  .template-list__search {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .template-list__panel {
+    padding: 16px;
+  }
+
+  .template-list__title {
+    font-size: 17px;
+  }
+
+  .template-list__filters .app-filter__field {
+    width: 100% !important;
+    max-width: 100%;
+  }
+}

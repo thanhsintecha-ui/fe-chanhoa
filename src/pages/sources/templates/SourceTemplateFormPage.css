@@ -1,0 +1,45 @@
+
+.source-template-detail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  width: 100%;
+  min-width: 0;
+}
+
+.source-template-detail__tabs {
+  position: relative;
+  flex-shrink: 0;
+  align-self: flex-start;
+
+  width: fit-content;
+  max-width: 100%;
+}
+
+/* Nội dung */
+.source-template-detail__content {
+  min-width: 0;
+}
+
+/* Không tìm thấy dữ liệu */
+.source-template-detail__not-found {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-height: 450px;
+
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .source-template-detail__tabs {
+    align-self: stretch;
+    width: 100%;
+  }
+}

@@ -1,0 +1,56 @@
+export const ROUTES = {
+  LOGIN: "/login",
+  VERIFY_2FA: "/verify-2fa",
+  FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
+
+  DASHBOARD: "/dashboard",
+
+  PROFILE: "/profile",
+  EDIT_PROFILE: "/profile/edit",
+  RENEWAL_HISTORY: "/profile/renewal-history",
+
+  FACILITIES: "/facilities",
+  DEVICES: "/devices",
+
+  SOURCES: "/sources",
+  SOURCE_MEDIA: "/sources/media",
+  SOURCE_TEMPLATES: "/sources/templates",
+  SOURCE_PLAYLISTS: "/sources/playlists",
+  SOURCE_SHARED: "/sources/shared",
+
+  BROADCASTS: "/broadcasts",
+  BROADCAST_APPROVE: "/broadcasts/:id/approve",
+
+  REPORTS: "/reports",
+
+  SETTINGS: "/settings",
+  SETTINGS_CATEGORIES: "/settings/categories",
+  SETTINGS_ROLES: "/settings/roles",
+  SETTINGS_DISTRIBUTORS: "/settings/distributors",
+  SETTINGS_LOGS: "/settings/logs",
+  SETTINGS_NEWS_MODE: "/settings/news-mode",
+  SETTINGS_SYSTEM: "/settings/system",
+  SETTINGS_PERSONAL: "/settings/personal",
+
+  FORBIDDEN: "/403",
+  NOT_FOUND: "/404",
+} as const;
+
+// Các đường dẫn dành riêng cho System User
+export const SYSTEM_ROUTES = {
+  ROOT: "/system",
+
+  DASHBOARD: "/system/dashboard",
+  ORGANIZATIONS: "/system/organizations",
+  NOTIFICATIONS: "/system/notifications",
+  PACKAGES: "/system/packages",
+  REPORTS: "/system/reports",
+
+  SETTINGS: "/system/settings",
+  SETTINGS_CATEGORIES: "/system/settings/categories",
+  SETTINGS_ROLES: "/system/settings/roles",
+  SETTINGS_DISTRIBUTORS: "/system/settings/distributors",
+  SETTINGS_LOGS: "/system/settings/logs",
+  SETTINGS_NEWS_MODE: "/system/settings/news-mode",
+} as const;

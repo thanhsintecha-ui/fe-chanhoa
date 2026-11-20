@@ -1,0 +1,439 @@
+import type { RouteObject } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import ProtectedRoute from "../app/ProtectedRoute";
+
+import MainLayout from "../layouts/MainLayout";
+import AuthLayout from "../layouts/AuthLayout/AuthLayout";
+
+import DashboardPage from "../pages/dashboard/DashboardPage";
+
+import LoginPage from "../pages/auth/LoginPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
+
+import ProfilePage from "../pages/profile/ProfilePage";
+import EditProfile from "../pages/profile/EditProfile";
+import RenewalHistoryPage from "../pages/profile/RenewalHistoryPage";
+
+import FacilitiesPage from "../pages/facilities";
+import FacilityPlaylistDetail from "../pages/facilities/FacilityPlaylists/FacilityPlaylistDetail";
+import DevicesPage from "../pages/devices";
+
+import DeviceDetailPage from "../pages/devices/DeviceDetail/DeviceDetailPage";
+
+import DeviceForm from "../pages/devices/components/DeviceForm/DeviceForm";
+
+import ForbiddenPage from "../pages/errors/ForbiddenPage";
+import NotFoundPage from "../pages/errors/NotFoundPage";
+
+import ComingSoonPage from "../pages/ComingSoonPage";
+
+import { ROUTES, SYSTEM_ROUTES } from "../constants/route.constants";
+import ReportsPage from "../pages/reports/ReportsPage";
+import FacilityTemplateFormPage from "../pages/facilities/FacilityTemplates/FacilityTemplateFormPage";
+
+import SourceMediaPage, { SourceMediaDetailPage } from "../pages/sources/media";
+
+import {
+  SourceTemplatesPage,
+  SourceTemplateFormPage,
+} from "../pages/sources/templates";
+
+import SourcePlaylistsPage from "../pages/sources/playlists";
+
+import SourceSharedPage from "../pages/sources/shared";
+
+import SystemSettings from "../pages/settings/system/SystemSettings";
+import PersonalSettings from "../pages/settings/personal/PersonalSettings";
+import UserLogsSettings from "../pages/settings/user-log/UserLogsSettings";
+import DeviceDistributorsSettings from "../pages/settings/device-distributors/DeviceDistributorsSettings";
+import CategoriesSettings from "../pages/settings/categories/CategoriesSettings";
+import CategoryDetailSettings from "../pages/settings/categories/CategoryDetailSettings";
+import RolesSettings from "../pages/settings/roles/RolesSettings";
+import RoleUpdateSettings from "../pages/settings/roles/role/RoleUpdateSettings";
+import RoleDetailSettings from "../pages/settings/roles/role/RoleDetailSettings";
+
+import OrganizationApiDemo from "../pages/OrganizationApiDemo";
+import TwoFactorPage from "../pages/auth/TwoFactorPage";
+import AccountPage from "../pages/account/AccountPage";
+import TwoFactorSettings from "../pages/account/two-factor/TwoFactorSettings";
+import AuthenticatorAppPage from "../pages/account/two-factor/AuthenticatorAppPage";
+import RecoveryCodesPage from "../pages/account/two-factor/RecoveryCodesPage";
+import AccountLayout from "../layouts/AccountLayout/AccountLayout";
+import PermissionRoute from "../app/PermissionRoute";
+import FacilityMediaDetail from "../pages/facilities/FacilityMedia/FacilityMediaDetail/FacilityMediaDetail";
+import SourcePlaylistDetail from "../pages/sources/playlists/SourcePlaylistDetail";
+import BroadcastPage from "../pages/broadcasts/BroadcastPage";
+import CreateBroadcastPage from "../pages/broadcasts/CreateBroadcast/CreateBroadcast";
+import BroadcastDetailPage from "../pages/broadcasts/BroadcastDetailPage/BroadcastDetailPage";
+import BroadcastApprovalPage from "../pages/broadcasts/BroadcastApprovalPage";
+import DashboardSystemUser from "../pages/system-user/dashboard/DashboardPage";
+import OrganizationsPage from "../pages/system-user/organizations/OrganizationsPage";
+import NotificationsPage from "../pages/system-user/notifications";
+import PackagesPage from "../pages/system-user/packages/PackagesPage";
+import PackageCreatePage from "../pages/system-user/packages/PackageCreatePage/PackageCreatePage";
+import PackageDetail from "../pages/system-user/packages/PackageDetail/PackageDetail";
+
+export const routes: RouteObject[] = [
+  // Auth
+  {
+    element: <AuthLayout />,
+    children: [
+      {
+        path: ROUTES.LOGIN,
+        element: <LoginPage />,
+      },
+      {
+        path: ROUTES.VERIFY_2FA,
+        element: <TwoFactorPage />,
+      },
+
+      {
+        path: ROUTES.FORGOT_PASSWORD,
+        element: <ForgotPasswordPage />,
+      },
+      {
+        path: ROUTES.RESET_PASSWORD,
+        element: <ResetPasswordPage />,
+      },
+    ],
+  },
+
+  {
+    element: <ProtectedRoute />,
+    children: [
+      // Profile
+      {
+        path: ROUTES.PROFILE,
+        children: [
+          {
+            index: true,
+            element: <ProfilePage />,
+          },
+          {
+            path: "edit",
+            element: <EditProfile />,
+          },
+          {
+            path: "renewal-history",
+            element: <RenewalHistoryPage />,
+          },
+        ],
+      },
+
+      {
+        path: "/account",
+        element: <AccountLayout />,
+        children: [
+          {
+            index: true,
+            element: <AccountPage />,
+          },
+          {
+            path: "two-factor",
+            element: <TwoFactorSettings />,
+          },
+          {
+            path: "two-factor/authenticator",
+            element: <AuthenticatorAppPage />,
+          },
+          {
+            path: "two-factor/recovery-codes",
+            element: <RecoveryCodesPage />,
+          },
+        ],
+      },
+
+      {
+        path: "/",
+        element: <MainLayout />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to={ROUTES.DASHBOARD} replace />,
+          },
+
+          // API Test
+          {
+            path: "api-test",
+            element: <OrganizationApiDemo />,
+          },
+
+          // Dashboard
+          {
+            path: ROUTES.DASHBOARD,
+            element: <DashboardPage />,
+          },
+
+          // Facilities
+          {
+            path: ROUTES.FACILITIES,
+            element: <FacilitiesPage />,
+          },
+          {
+            path: "facilities/:facilityId/media/:mediaId",
+            element: <FacilityMediaDetail />,
+          },
+
+          {
+            path: "facilities/:facilityId/playlists/:playlistId",
+            element: <FacilityPlaylistDetail />,
+          },
+          {
+            path: "facilities/:facilityId/templates/create",
+            element: <FacilityTemplateFormPage mode="create" />,
+          },
+          {
+            path: "facilities/:facilityId/templates/:templateId/edit",
+            element: <FacilityTemplateFormPage mode="edit" />,
+          },
+          {
+            path: "facilities/:facilityId/templates/:templateId",
+            element: <FacilityTemplateFormPage mode="view" />,
+          },
+
+          // Sources
+          {
+            path: ROUTES.SOURCES,
+            element: <Navigate to={ROUTES.SOURCE_MEDIA} replace />,
+          },
+          {
+            path: ROUTES.SOURCE_MEDIA,
+            element: <SourceMediaPage />,
+          },
+          {
+            path: `${ROUTES.SOURCE_MEDIA}/:id`,
+            element: <SourceMediaDetailPage />,
+          },
+          {
+            path: ROUTES.SOURCE_SHARED,
+            element: <SourceSharedPage />,
+          },
+
+          // Source Playlists
+          {
+            path: ROUTES.SOURCE_PLAYLISTS,
+            element: <SourcePlaylistsPage />,
+          },
+          {
+            path: "sources/playlists/:playlistId",
+            element: <SourcePlaylistDetail />,
+          },
+
+          {
+            path: ROUTES.SOURCE_TEMPLATES,
+            element: <SourceTemplatesPage />,
+          },
+          {
+            path: "sources/templates/create",
+            element: <SourceTemplateFormPage mode="create" />,
+          },
+          {
+            path: "sources/templates/:templateId/edit",
+            element: <SourceTemplateFormPage mode="edit" />,
+          },
+          {
+            path: "sources/templates/:templateId",
+            element: <SourceTemplateFormPage mode="view" />,
+          },
+
+          // Devices - Xem danh sách và chi tiết
+          {
+            element: <PermissionRoute permission="DEVICE_VIEW" />,
+            children: [
+              {
+                path: ROUTES.DEVICES,
+                element: <DevicesPage />,
+              },
+              {
+                path: "devices/:id",
+                element: <DeviceDetailPage />,
+              },
+            ],
+          },
+
+          // Devices - Thêm và chỉnh sửa
+          {
+            element: <PermissionRoute permission="DEVICE_MANAGE" />,
+            children: [
+              {
+                path: "devices/create",
+                element: <DeviceForm mode="create" />,
+              },
+              {
+                path: "devices/:id/edit",
+                element: <DeviceForm mode="edit" />,
+              },
+            ],
+          },
+
+          // Broadcasts
+          {
+            path: ROUTES.BROADCASTS,
+            element: <BroadcastPage />,
+          },
+          {
+            path: "/broadcasts/create",
+            element: <CreateBroadcastPage />,
+          },
+          {
+            path: "/broadcasts/:id/approve",
+            element: <BroadcastApprovalPage />,
+          },
+          {
+            path: "/broadcasts/:id",
+            element: <BroadcastDetailPage />,
+          },
+
+          // Reports
+          {
+            path: ROUTES.REPORTS,
+            element: <ReportsPage />,
+          },
+
+          // Settings
+          {
+            path: ROUTES.SETTINGS,
+            element: <Navigate to={ROUTES.SETTINGS_SYSTEM} replace />,
+          },
+          {
+            path: ROUTES.SETTINGS_SYSTEM,
+            element: <SystemSettings />,
+          },
+          {
+            path: ROUTES.SETTINGS_PERSONAL,
+            element: <PersonalSettings />,
+          },
+          {
+            path: ROUTES.SETTINGS_CATEGORIES,
+            element: <CategoriesSettings />,
+          },
+          {
+            path: "/settings/categories/:id",
+            element: <CategoryDetailSettings />,
+          },
+          {
+            path: ROUTES.SETTINGS_ROLES,
+            element: <RolesSettings />,
+          },
+          {
+            path: `${ROUTES.SETTINGS_ROLES}/:id/edit`,
+            element: <RoleUpdateSettings />,
+          },
+          {
+            path: `${ROUTES.SETTINGS_ROLES}/:id`,
+            element: <RoleDetailSettings />,
+          },
+          {
+            path: ROUTES.SETTINGS_DISTRIBUTORS,
+            element: <DeviceDistributorsSettings />,
+          },
+          {
+            path: ROUTES.SETTINGS_LOGS,
+            element: <UserLogsSettings />,
+          },
+
+          {
+            path: ROUTES.SETTINGS_NEWS_MODE,
+            element: <ComingSoonPage title="Chế độ tạo bản tin" />,
+          },
+        ],
+      },
+
+      // ===========================
+      // SYSTEM USER
+      // ===========================
+      {
+        path: SYSTEM_ROUTES.ROOT,
+        element: <MainLayout variant="system-user" />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to={SYSTEM_ROUTES.DASHBOARD} replace />,
+          },
+          {
+            path: SYSTEM_ROUTES.DASHBOARD,
+            element: <DashboardSystemUser />,
+          },
+          {
+            path: SYSTEM_ROUTES.ORGANIZATIONS,
+            element: <OrganizationsPage />,
+          },
+          {
+            path: SYSTEM_ROUTES.NOTIFICATIONS,
+            element: <NotificationsPage />,
+          },
+          {
+            path: SYSTEM_ROUTES.PACKAGES,
+            element: <PackagesPage />,
+          },
+          {
+            path: "/system/packages/create",
+            element: <PackageCreatePage />,
+          },
+          {
+            path: "/system/packages/:id",
+            element: <PackageDetail />,
+          },
+          {
+            path: SYSTEM_ROUTES.REPORTS,
+            element: <ComingSoonPage title="Báo cáo" />,
+          },
+
+          {
+            path: SYSTEM_ROUTES.SETTINGS,
+            element: (
+              <Navigate to={SYSTEM_ROUTES.SETTINGS_CATEGORIES} replace />
+            ),
+          },
+          {
+            path: SYSTEM_ROUTES.SETTINGS_CATEGORIES,
+            element: <CategoriesSettings />,
+          },
+          {
+            path: `${SYSTEM_ROUTES.SETTINGS_CATEGORIES}/:id`,
+            element: <CategoryDetailSettings />,
+          },
+          {
+            path: SYSTEM_ROUTES.SETTINGS_ROLES,
+            element: <RolesSettings />,
+          },
+          {
+            path: `${SYSTEM_ROUTES.SETTINGS_ROLES}/:id/edit`,
+            element: <RoleUpdateSettings />,
+          },
+          {
+            path: `${SYSTEM_ROUTES.SETTINGS_ROLES}/:id`,
+            element: <RoleDetailSettings />,
+          },
+          {
+            path: SYSTEM_ROUTES.SETTINGS_DISTRIBUTORS,
+            element: <DeviceDistributorsSettings />,
+          },
+          {
+            path: SYSTEM_ROUTES.SETTINGS_LOGS,
+            element: <UserLogsSettings />,
+          },
+          {
+            path: SYSTEM_ROUTES.SETTINGS_NEWS_MODE,
+            element: <ComingSoonPage title="Chế độ tạo bản tin" />,
+          },
+        ],
+      },
+    ],
+  },
+
+  // Errors
+  {
+    path: ROUTES.FORBIDDEN,
+    element: <ForbiddenPage />,
+  },
+  {
+    path: ROUTES.NOT_FOUND,
+    element: <NotFoundPage />,
+  },
+  {
+    path: "*",
+    element: <NotFoundPage />,
+  },
+];
